@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.adapter.DateTimeAdapter;
 import ru.practicum.stats.mapper.ElementStatsMapper;
-import ru.practicum.stats.model.ElementStats;
+import ru.practicum.stats.model.Stats;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class ElementStatsServiceImpl implements ElementStatsService {
-    private final ElementStatsRepository statsRepository;
+public class StatsServiceImpl implements StatsService {
+    private final StatsRepository statsRepository;
 
     @Override
     public List<ElementStatsResponseDto> getStatsFromService(String start, String end,
@@ -32,13 +32,13 @@ public class ElementStatsServiceImpl implements ElementStatsService {
         LocalDateTime endTime = DateTimeAdapter.stringToLocalDateTime(
                 URLDecoder.decode(end, StandardCharsets.UTF_8));
 
-        List<ElementStats> stats = fetchStats(startTime, endTime, uris, unique);
+        List<Stats> stats = fetchStats(startTime, endTime, uris, unique);
         return mapToResponseDto(stats);
     }
 
     //Получение статистики из БД
-    private List<ElementStats> fetchStats(LocalDateTime startTime, LocalDateTime endTime,
-                                          List<String> uris, boolean unique) {
+    private List<Stats> fetchStats(LocalDateTime startTime, LocalDateTime endTime,
+                                   List<String> uris, boolean unique) {
         boolean hasUris = (uris != null && !uris.isEmpty());
 
         if (unique) {
@@ -57,7 +57,7 @@ public class ElementStatsServiceImpl implements ElementStatsService {
     }
 
     //Метод для преобразования ответа в ElementStatsResponseDto
-    private List<ElementStatsResponseDto> mapToResponseDto(List<ElementStats> stats) {
+    private List<ElementStatsResponseDto> mapToResponseDto(List<Stats> stats) {
         Map<String, Long> statsCount = countStatsByUri(stats);
 
         return statsCount.entrySet().stream()
@@ -68,14 +68,14 @@ public class ElementStatsServiceImpl implements ElementStatsService {
     }
 
     //получаем мапу из URI и количесва просмотров этого URI
-    private Map<String, Long> countStatsByUri(List<ElementStats> stats) {
+    private Map<String, Long> countStatsByUri(List<Stats> stats) {
         return stats.stream()
-                .collect(Collectors.groupingBy(ElementStats::getUri, Collectors.counting()));
+                .collect(Collectors.groupingBy(Stats::getUri, Collectors.counting()));
     }
 
     //Метод для преобразования каждого отдельного элемента в ElementStatsResponseDto
-    private ElementStatsResponseDto createResponseDto(String uri, Long count, List<ElementStats> stats) {
-        ElementStats elementStats = stats.stream()
+    private ElementStatsResponseDto createResponseDto(String uri, Long count, List<Stats> stats) {
+        Stats elementStats = stats.stream()
                 .filter(e -> e.getUri().equals(uri))
                 .findFirst()
                 .orElse(null);
@@ -87,7 +87,7 @@ public class ElementStatsServiceImpl implements ElementStatsService {
         log.info("Начало работы saveHit");
         log.info("statsSaveDto: {}", statsSaveDto);
         statsSaveDto.setCreatedDate(LocalDateTime.now());
-        ElementStats newElementStats = ElementStatsMapper.mapToStats(statsSaveDto);
+        Stats newElementStats = ElementStatsMapper.mapToStats(statsSaveDto);
         statsRepository.save(newElementStats);
         log.info("Хит сохранен в БД");
     }

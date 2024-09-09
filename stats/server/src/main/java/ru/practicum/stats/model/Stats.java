@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @Builder(toBuilder = true)
 @Entity
 @Table(name = "stats")
-public class ElementStats {
+public class Stats {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

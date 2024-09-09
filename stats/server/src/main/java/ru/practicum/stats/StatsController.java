@@ -13,14 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Set;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping
 @Slf4j
-public class ElementStatsController {
-    private final ElementStatsService statsService;
+public class StatsController {
+    private final StatsService statsService;
 
     @GetMapping("/stats")
     public List<ElementStatsResponseDto> getStatsFromService(
