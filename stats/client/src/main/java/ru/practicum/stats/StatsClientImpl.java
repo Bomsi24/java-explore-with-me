@@ -24,6 +24,7 @@ import java.util.List;
 @Service
 public class StatsClientImpl implements StatsClient {
     private final RestTemplate restTemplate;
+
     @Value("${stats-server.url}")
     private String serverUri;
 
@@ -32,7 +33,7 @@ public class StatsClientImpl implements StatsClient {
                                                   @NotNull @NotEmpty String end,
                                                   List<String> uris, Boolean unique) {
 
-        StringBuilder url = new StringBuilder(serverUri +   "/stats?start=" +
+        StringBuilder url = new StringBuilder(serverUri + "/stats?start=" +
                 codingTime(start) + "&end=" + codingTime(end));
 
         if (uris != null && !uris.isEmpty()) {
@@ -47,7 +48,7 @@ public class StatsClientImpl implements StatsClient {
                     url.toString(),
                     HttpMethod.GET,
                     null,
-                    new ParameterizedTypeReference<List<ElementStatsResponseDto>>() {
+                    new ParameterizedTypeReference<>() {
                     }
             );
 

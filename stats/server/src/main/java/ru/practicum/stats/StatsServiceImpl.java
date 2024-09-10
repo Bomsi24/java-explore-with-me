@@ -79,13 +79,17 @@ public class StatsServiceImpl implements StatsService {
                 .filter(e -> e.getUri().equals(uri))
                 .findFirst()
                 .orElse(null);
+
+        if (elementStats == null) {
+            return null;
+        }
+
         return ElementStatsMapper.mapToStatsDto(elementStats, count);
     }
 
     @Override
     public void saveHit(ElementStatsSaveDto statsSaveDto) {
         log.info("Начало работы saveHit");
-        log.info("statsSaveDto: {}", statsSaveDto);
         statsSaveDto.setCreatedDate(LocalDateTime.now());
         Stats newElementStats = ElementStatsMapper.mapToStats(statsSaveDto);
         statsRepository.save(newElementStats);
