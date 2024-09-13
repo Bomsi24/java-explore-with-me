@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class ElementStatsSaveDto {
+    private int id;
     @NotEmpty
     @NotNull
     private String app;

@@ -67,7 +67,7 @@ public class StatsServiceImpl implements StatsService {
                 .collect(Collectors.toList());
     }
 
-    //получаем мапу из URI и количесва просмотров этого URI
+    //получаем мапу из URI и количесво просмотров этого URI
     private Map<String, Long> countStatsByUri(List<Stats> stats) {
         return stats.stream()
                 .collect(Collectors.groupingBy(Stats::getUri, Collectors.counting()));
