@@ -175,7 +175,7 @@ public class EventServiceImpl implements EventService {
         List<Request> noUpdateRequests = new ArrayList<>();
         for (Request request : requests) {
             log.info("requestStatus: {}", requestStatus.name());
-            if (requestStatus != RequestStatus.CONFIRMED) {// Если заявки отменяются
+            if (requestStatus != RequestStatus.CONFIRMED) { // Если заявки отменяются
                 log.info("ЗАЯВКИ ОТМЕНЯЮТСЯ");
                 if (request.getStatus() != RequestStatus.PENDING) {
                     throw new ConflictException("Заявка не в состоянии ожидания", "");
