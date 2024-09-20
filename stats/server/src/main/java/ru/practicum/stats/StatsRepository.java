@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface StatsRepository extends JpaRepository<Stats, Long> {
 
-    @Query("SELECT new ru.practicum.stats.ElementStatsResponseDto(e.app, e.uri, COUNT(DISTINCT e.ip)) " +
+    @Query("SELECT new ru.practicum.stats.ElementStatsResponseDto(e.app, e.uri, COUNT(e.ip)) " +
             "FROM Stats AS e  " +
             "WHERE e.createdDate BETWEEN :start AND :end " +
             " AND e.uri IN :uris " +
@@ -19,7 +19,7 @@ public interface StatsRepository extends JpaRepository<Stats, Long> {
             "ORDER BY COUNT(e.ip) DESC")
     List<ElementStatsResponseDto> getStatsNotOriginalIp(LocalDateTime start, LocalDateTime end, List<String> uris);
 
-    @Query("SELECT new ru.practicum.stats.ElementStatsResponseDto(e.app, e.uri, COUNT(DISTINCT e.ip)) " +
+    @Query("SELECT new ru.practicum.stats.ElementStatsResponseDto(e.app, e.uri, COUNT( e.ip)) " +
             "FROM Stats AS e  " +
             "WHERE e.createdDate BETWEEN :start AND :end " +
             "GROUP BY e.app, e.uri " +

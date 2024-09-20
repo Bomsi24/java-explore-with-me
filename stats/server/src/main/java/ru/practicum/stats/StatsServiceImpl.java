@@ -54,15 +54,12 @@ public class StatsServiceImpl implements StatsService {
                 return statsRepository.getStatsOriginalIp(startTime, endTime, uris);
 
             } else {
-
                 return statsRepository.getStatsOriginalIp(startTime, endTime);
             }
         } else {
             if (hasUris) {
-
                 return statsRepository.getStatsNotOriginalIp(startTime, endTime, uris);
             } else {
-
                 return statsRepository.getStatsNotOriginalIp(startTime, endTime);
             }
         }

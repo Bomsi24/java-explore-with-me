@@ -160,44 +160,43 @@ public class EventServiceImpl implements EventService {
         log.info("Начало работы метода updateStatusRequestForEvent");
         Event event = eventRepository.findById(eventId).orElseThrow(() ->
                 new NotFoundException("Событие не найдено", ""));
+
         int participantLimit = event.getParticipantLimit();
-        log.info("participantLimit: {}", participantLimit);
         int confirmedRequests = event.getConfirmedRequests();
-        log.info("confirmedRequests: {}", confirmedRequests);
 
         if (participantLimit > 0 && participantLimit <= confirmedRequests) {
             throw new ConflictException("Больше создать заявок нельзя", "");
         }
-        log.info("Что там за статус: {}", statusUpdateRequest.getStatus());
+
         RequestStatus requestStatus = RequestStatus.valueOf(statusUpdateRequest.getStatus());
         List<Request> requests = requestRepository.findByIdIn(statusUpdateRequest.getRequestIds());
         List<Request> updatedRequests = new ArrayList<>();
         List<Request> noUpdateRequests = new ArrayList<>();
+
         for (Request request : requests) {
-            log.info("requestStatus: {}", requestStatus.name());
-            if (requestStatus != RequestStatus.CONFIRMED) { // Если заявки отменяются
-                log.info("ЗАЯВКИ ОТМЕНЯЮТСЯ");
+            log.info("Если заявки отменяются");
+            if (requestStatus != RequestStatus.CONFIRMED) {
                 if (request.getStatus() != RequestStatus.PENDING) {
                     throw new ConflictException("Заявка не в состоянии ожидания", "");
                 }
                 request.setStatus(requestStatus);
                 noUpdateRequests.add(request);
+
             } else {
-                log.info("заявки одобряются");
+                log.info("Заявки одобряются");
+
                 if (participantLimit > confirmedRequests) {
+                    log.info("Проверяем лимит участников");
                     if (request.getStatus() != RequestStatus.PENDING) {
                         throw new ConflictException("Заявка не в состоянии ожидания", "");
                     }
-
                     request.setStatus(requestStatus);
                     confirmedRequests++;
                     updatedRequests.add(request);
-
                 } else {
                     if (request.getStatus() != RequestStatus.PENDING) {
                         throw new ConflictException("Заявка не в состоянии ожидания", "");
                     }
-
                     request.setStatus(requestStatus);
                     noUpdateRequests.add(request);
                 }
@@ -298,7 +297,6 @@ public class EventServiceImpl implements EventService {
                                                Integer size,
                                                HttpServletRequest request) {
         log.info("Начало работы метода getPublicEvents");
-
         QEvent event = QEvent.event;
 
         BooleanExpression predicate = event.isNotNull();
@@ -370,63 +368,6 @@ public class EventServiceImpl implements EventService {
         return EventMapper.toEventFullDto(event, viewsMpa);
     }
 
-    private void validateParticipantLimit(Event event) {
-        int participantLimit = event.getParticipantLimit();
-        int confirmedRequests = event.getConfirmedRequests();
-
-        if (participantLimit > 0 && participantLimit <= confirmedRequests) {
-            throw new ConflictException("Больше создать заявок нельзя", "");
-        }
-    }
-
-    private void processRequest(Request request, RequestStatus requestStatus, Event event,
-                                List<Request> updatedRequests, List<Request> noUpdateRequests) {
-
-        if (requestStatus != RequestStatus.CONFIRMED) {
-            handleCancellation(request, noUpdateRequests);
-        } else {
-            handleConfirmation(request, event, updatedRequests, noUpdateRequests);
-        }
-    }
-
-    private void handleCancellation(Request request, List<Request> noUpdateRequests) {
-        if (request.getStatus() != RequestStatus.PENDING) {
-            throw new ConflictException("Заявка не в состоянии ожидания", "");
-        }
-        request.setStatus(RequestStatus.CANCELED);
-        noUpdateRequests.add(request);
-    }
-
-    private void handleConfirmation(Request request, Event event, List<Request> updatedRequests, List<Request> noUpdateRequests) {
-        int confirmedRequests = event.getConfirmedRequests();
-        int participantLimit = event.getParticipantLimit();
-
-        if (participantLimit > confirmedRequests) {
-            if (request.getStatus() != RequestStatus.PENDING) {
-                throw new ConflictException("Заявка не в состоянии ожидания", "");
-            }
-
-            request.setStatus(RequestStatus.CONFIRMED);
-            updatedRequests.add(request);
-
-        } else {
-            if (request.getStatus() != RequestStatus.PENDING) {
-                throw new ConflictException("Заявка не в состоянии ожидания", "");
-            }
-
-            request.setStatus(RequestStatus.REJECTED);
-            noUpdateRequests.add(request);
-        }
-    }
-
-    private EventRequestStatusUpdateResult buildUpdateResult(List<Request> updatedRequests, List<Request> noUpdateRequests) {
-        return EventRequestStatusUpdateResult.builder()
-                .confirmedRequests(RequestMapper.mapToParticipationRequestDtoList(updatedRequests))
-                .rejectedRequests(RequestMapper.mapToParticipationRequestDtoList(noUpdateRequests))
-                .build();
-    }
-
-
     private void validateEventDate(UpdateEventRequest updateEvent, Event event) {
         if (updateEvent.getEventDate() != null) {
             LocalDateTime eventDate = DateTimeAdapter.stringToLocalDateTime(updateEvent.getEventDate());
@@ -440,15 +381,17 @@ public class EventServiceImpl implements EventService {
     private State determineState(UpdateEventRequest updateEvent, Event event) {
         if (updateEvent.getStateAction() != null) {
             StateAction stateAction = StateAction.valueOf(updateEvent.getStateAction());
-            log.info("state {}", stateAction);
+
             if (stateAction == StateAction.PUBLISH_EVENT && event.getState() != State.PENDING) {
                 throw new ConflictException("Событие не в ожидании публикации", "");
             }
             if (stateAction == StateAction.REJECT_EVENT && event.getState() == State.PUBLISHED) {
                 throw new ConflictException("Событие уже опубликованно", "");
             }
+
             return stateAction == StateAction.PUBLISH_EVENT ? State.PUBLISHED : State.CANCELED;
         }
+
         return null;
     }
 
