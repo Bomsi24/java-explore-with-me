@@ -31,6 +31,7 @@ public class AdminCategoryController {
         return categoryService.createCategory(newCategory);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{catId}")
     public void deleteCategory(@PathVariable int catId) {
         log.info("Начало работы Admin эндпоинта @DeleteMapping deleteCategory");
@@ -38,7 +39,8 @@ public class AdminCategoryController {
     }
 
     @PatchMapping("/{catId}")
-    public CategoryDto updateCategory(@PathVariable int catId, @RequestBody CategoryDto category) {
+    public CategoryDto updateCategory(@PathVariable int catId,
+                                      @Valid @RequestBody CategoryDto category) {
         log.info("Начало работы Admin эндпоинта @PatchMapping updateCategory");
         return categoryService.updateCategory(catId, category);
     }

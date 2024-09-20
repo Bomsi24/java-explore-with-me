@@ -32,5 +32,4 @@ public interface StatsRepository extends JpaRepository<Stats, Long> {
             "WHERE e2.createdDate BETWEEN :start AND :end " +
             "GROUP BY e2.ip, e2.app)")
     List<Stats> getStatsOriginalIp(LocalDateTime start, LocalDateTime end);
-
 }

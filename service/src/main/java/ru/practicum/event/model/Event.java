@@ -36,7 +36,7 @@ public class Event {
     private Integer id;
 
     @Column(nullable = false)
-    private String tittle;
+    private String title;
 
     @Column(nullable = false)
     private String annotation;
@@ -52,13 +52,16 @@ public class Event {
     private String description;
 
     @Column(nullable = false, name = "event_date")
-    private LocalDateTime eventDate;//Дата и время когда будет события (в формате "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime eventDate;
+
+    @Column(nullable = false, name = "created_on")
+    private LocalDateTime createdOn;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(nullable = false, name = "initiator_id")
     private User initiator;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
     @JoinColumn(nullable = false, name = "location_id")
     private Location location;
 
@@ -68,8 +71,8 @@ public class Event {
     @Column(nullable = false, name = "participant_limit")
     private Integer participantLimit;
 
-    @Column(nullable = false, name = "published_on")
-    private LocalDateTime publishedOn; //Дата и время публикации события (в формате "yyyy-MM-dd HH:mm:ss")
+    @Column(name = "published_on")
+    private LocalDateTime publishedOn;
 
     @Column(nullable = false, name = "request_moderation")
     private Boolean requestModeration;
@@ -77,7 +80,4 @@ public class Event {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private State state;
-
-    @Column(nullable = false)
-    private Integer views;
 }

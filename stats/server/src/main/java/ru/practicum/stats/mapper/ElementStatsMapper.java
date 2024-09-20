@@ -16,6 +16,7 @@ public class ElementStatsMapper {
 
     public static Stats mapToStats(ElementStatsSaveDto statsSaveDto) {
         return Stats.builder()
+                .id(statsSaveDto.getId())
                 .app(statsSaveDto.getApp())
                 .uri(statsSaveDto.getUri())
                 .ip(statsSaveDto.getIp())

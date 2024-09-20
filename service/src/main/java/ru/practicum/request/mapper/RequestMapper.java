@@ -4,6 +4,8 @@ import ru.practicum.adapter.DateTimeAdapter;
 import ru.practicum.request.dto.ParticipationRequestDto;
 import ru.practicum.request.model.Request;
 
+import java.util.List;
+
 public class RequestMapper {
 
     public static ParticipationRequestDto mapToParticipationRequestDto(Request request) {
@@ -15,6 +17,11 @@ public class RequestMapper {
                 .requester(request.getRequester().getId())
                 .status(request.getStatus().name())
                 .build();
+    }
 
+    public static List<ParticipationRequestDto> mapToParticipationRequestDtoList(List<Request> requests) {
+        return requests.stream()
+                .map(RequestMapper::mapToParticipationRequestDto)
+                .toList();
     }
 }

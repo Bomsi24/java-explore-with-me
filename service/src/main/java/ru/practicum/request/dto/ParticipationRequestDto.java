@@ -9,7 +9,7 @@ import lombok.Data;
 @Builder(toBuilder = true)
 public class ParticipationRequestDto {
     private Integer id;
-    private String created;//Время создания
+    private String created;
     private Integer event;
     private Integer requester;
     private String status;

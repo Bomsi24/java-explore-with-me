@@ -1,31 +1,54 @@
 package ru.practicum.event.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.category.model.Category;
-import ru.practicum.user.model.User;
-
-import java.time.LocalDateTime;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder(toBuilder = true)
 public class NewEventDto {
+    @NotNull
+    @NotEmpty
+    @NotBlank
+    @Size(min = 20, max = 2000)
     private String annotation;
+
+    @Positive
+    @NotNull
     private Integer category;
+
+    @NotNull
+    @NotEmpty
+    @NotBlank
+    @Size(min = 20, max = 7000)
     private String description;
-    private String eventDate; // Дата и время указываются в формате "yyyy-MM-dd HH:mm:ss"
+
+    @NotNull
+    @NotEmpty
+    @NotBlank
+    private String eventDate;
+
+    @NotNull
     private LocationDto location;
+
+    @NotNull
+    @NotEmpty
+    @NotBlank
+    @Size(min = 3, max = 120)
+    private String title;
+
     private Boolean paid;
+
+    @Min(value = 0)
     private Integer participantLimit;
     private Boolean requestModeration;
-    private String title;
 }
-
-/*
-private Category category;
-private Integer confirmedRequests;
-private User initiator;
-LocalDateTime publishedOn;
-private Integer views;*/

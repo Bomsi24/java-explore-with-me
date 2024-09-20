@@ -29,6 +29,4 @@ public class Location {
 
     @Column(nullable = false, length = 50)
     private Double lon;
-
-
 }

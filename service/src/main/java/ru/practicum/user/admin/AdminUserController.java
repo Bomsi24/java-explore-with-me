@@ -30,17 +30,21 @@ public class AdminUserController {
     public List<UserDto> getUsers(@RequestParam(required = false) List<Integer> ids,
                                   @RequestParam(required = false, defaultValue = "0") Integer from,
                                   @RequestParam(required = false, defaultValue = "10") Integer size) {
+        log.info("Начало работы метода @GetMapping getUsers");
         return userService.getUsers(ids, from, size);
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public UserDto addUser(@Valid @RequestBody NewUserRequest newUser) {
+        log.info("Начало работы метода @PostMapping addUser");
         return userService.addUser(newUser);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{userId}")
     public void deleteUser(@PathVariable int userId) {
+        log.info("Начало работы метода @DeleteMapping deleteUser");
         userService.deleteUser(userId);
     }
 }

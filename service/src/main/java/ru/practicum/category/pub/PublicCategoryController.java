@@ -22,11 +22,13 @@ public class PublicCategoryController {
     @GetMapping
     public List<CategoryDto> getCategories(@RequestParam(required = false, defaultValue = "0") int from,
                                            @RequestParam(required = false, defaultValue = "10") int size) {
+        log.info("начало работы эндпоинта  getCategories");
         return publicCategoryService.getCategories(from, size);
     }
 
     @GetMapping("/{id}")
     public CategoryDto getCategory(@PathVariable int id) {
+        log.info("начало работы эндпоинта  getCategory");
         return publicCategoryService.getCategory(id);
     }
 

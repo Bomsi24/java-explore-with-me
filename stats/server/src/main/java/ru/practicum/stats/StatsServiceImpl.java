@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.adapter.DateTimeAdapter;
+import ru.practicum.stats.exception.DataNotValidException;
 import ru.practicum.stats.mapper.ElementStatsMapper;
 import ru.practicum.stats.model.Stats;
 
@@ -32,7 +33,13 @@ public class StatsServiceImpl implements StatsService {
         LocalDateTime endTime = DateTimeAdapter.stringToLocalDateTime(
                 URLDecoder.decode(end, StandardCharsets.UTF_8));
 
+        if (startTime.isAfter(endTime)) {
+            throw new DataNotValidException("Неверное время");
+        }
+
         List<Stats> stats = fetchStats(startTime, endTime, uris, unique);
+        List<Stats> statsAll = statsRepository.findAll();
+
         return mapToResponseDto(stats);
     }
 
@@ -41,16 +48,21 @@ public class StatsServiceImpl implements StatsService {
                                    List<String> uris, boolean unique) {
         boolean hasUris = (uris != null && !uris.isEmpty());
 
+
         if (unique) {
             if (hasUris) {
+
                 return statsRepository.getStatsOriginalIp(startTime, endTime, uris);
             } else {
+
                 return statsRepository.getStatsOriginalIp(startTime, endTime);
             }
         } else {
             if (hasUris) {
+
                 return statsRepository.getStatsNotOriginalIp(startTime, endTime, uris);
             } else {
+
                 return statsRepository.getStatsNotOriginalIp(startTime, endTime);
             }
         }

@@ -1,11 +1,13 @@
 package ru.practicum.user;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.exception.ConflictException;
+import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.dto.UserDto;
 import ru.practicum.user.mapper.UserMapper;
@@ -13,15 +15,16 @@ import ru.practicum.user.model.User;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
 
     @Override
     public List<UserDto> getUsers(List<Integer> ids, int from, int size) {
+        log.info("Начало работы метода getUsers");
         if (ids != null && !ids.isEmpty()) {
             List<User> users = userRepository.findUsersByIdIn(ids);
 
@@ -39,15 +42,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public UserDto addUser(NewUserRequest user) {
+        log.info("Начало работы метода addUser");
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new ConflictException("Такая почта уже существует", "");
+        }
+
         User newUser = userRepository.save(UserMapper.mapToUser(user));
+
         return UserMapper.mapToUserDto(newUser);
     }
 
     @Override
-    @Transactional
     public void deleteUser(int userId) {
+        log.info("Начало работы метода deleteUser");
+        userRepository.findById(userId).orElseThrow(() ->
+                new NotFoundException("Пользователя нет", ""));
+
         userRepository.deleteById(userId);
     }
 }

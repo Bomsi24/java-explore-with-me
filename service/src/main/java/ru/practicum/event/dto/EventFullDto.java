@@ -1,5 +1,8 @@
 package ru.practicum.event.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -7,24 +10,47 @@ import lombok.NoArgsConstructor;
 import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.user.dto.UserShortDto;
 
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
 public class EventFullDto {
-    private Integer id;
-    private String tittle;
+    @NotNull
+    @NotEmpty
     private String annotation;
+
+    @NotNull
     private CategoryDto category;
+
+    @NotNull
+    @NotEmpty
+    private String eventDate;
+
+    @NotNull
+    private UserShortDto initiator;
+
+    @NotNull
+    @NotEmpty
+    private LocationDto location;
+
+    @NotNull
+    @NotEmpty
+    private Boolean paid;
+
+    @NotNull
+    @NotEmpty
+    private String title;
+
+    private String createdOn;
+    private Integer id;
     private Integer confirmedRequests;
     private String description;
-    private String eventDate;//Дата и время публикации события (в формате "yyyy-MM-dd HH:mm:ss")
-    private UserShortDto initiator;
-    private LocationDto location;
-    private Boolean paid;
+
+    @Min(value = 0)
     private Integer participantLimit;
     private String publishedOn; //Дата и время публикации события (в формате "yyyy-MM-dd HH:mm:ss")
     private Boolean requestModeration;
     private String state;
-    private Integer views;
+    private Long views;
 }

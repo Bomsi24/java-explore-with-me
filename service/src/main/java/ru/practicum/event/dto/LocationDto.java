@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 public class LocationDto {
-    private Double lat;
-    private Double lon;
+    private double lat;
+    private double lon;
 }
