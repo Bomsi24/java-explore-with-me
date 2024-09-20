@@ -37,22 +37,22 @@ public class StatsServiceImpl implements StatsService {
             throw new DataNotValidException("Неверное время");
         }
 
-        List<Stats> stats = fetchStats(startTime, endTime, uris, unique);
-        List<Stats> statsAll = statsRepository.findAll();
-
-        return mapToResponseDto(stats);
+        return fetchStats(startTime, endTime, uris, unique);
     }
 
     //Получение статистики из БД
-    private List<Stats> fetchStats(LocalDateTime startTime, LocalDateTime endTime,
-                                   List<String> uris, boolean unique) {
+    private List<ElementStatsResponseDto> fetchStats(LocalDateTime startTime, LocalDateTime endTime,
+                                                     List<String> uris, boolean unique) {
         boolean hasUris = (uris != null && !uris.isEmpty());
 
+        for (Stats stats : statsRepository.findAll()) {
+            log.info(stats.toString());
+        }
 
         if (unique) {
             if (hasUris) {
-
                 return statsRepository.getStatsOriginalIp(startTime, endTime, uris);
+
             } else {
 
                 return statsRepository.getStatsOriginalIp(startTime, endTime);

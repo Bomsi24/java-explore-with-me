@@ -155,29 +155,68 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventRequestStatusUpdateResult updateStatusRequestForEvent(int userId, int eventId,
-                                                                      EventRequestStatusUpdateRequest statusUpdateRequest) {
+                                                                      EventRequestStatusUpdateRequest
+                                                                              statusUpdateRequest) {
         log.info("Начало работы метода updateStatusRequestForEvent");
         Event event = eventRepository.findById(eventId).orElseThrow(() ->
                 new NotFoundException("Событие не найдено", ""));
+        int participantLimit = event.getParticipantLimit();
+        log.info("participantLimit: {}", participantLimit);
+        int confirmedRequests = event.getConfirmedRequests();
+        log.info("confirmedRequests: {}", confirmedRequests);
 
-        validateParticipantLimit(event);
-
+        if (participantLimit > 0 && participantLimit <= confirmedRequests) {
+            throw new ConflictException("Больше создать заявок нельзя", "");
+        }
+        log.info("Что там за статус: {}", statusUpdateRequest.getStatus());
         RequestStatus requestStatus = RequestStatus.valueOf(statusUpdateRequest.getStatus());
         List<Request> requests = requestRepository.findByIdIn(statusUpdateRequest.getRequestIds());
-
         List<Request> updatedRequests = new ArrayList<>();
         List<Request> noUpdateRequests = new ArrayList<>();
-
         for (Request request : requests) {
-            processRequest(request, requestStatus, event, updatedRequests, noUpdateRequests);
+            log.info("requestStatus: {}", requestStatus.name());
+            if (requestStatus != RequestStatus.CONFIRMED) {// Если заявки отменяются
+                log.info("ЗАЯВКИ ОТМЕНЯЮТСЯ");
+                if (request.getStatus() != RequestStatus.PENDING) {
+                    throw new ConflictException("Заявка не в состоянии ожидания", "");
+                }
+                request.setStatus(requestStatus);
+                noUpdateRequests.add(request);
+            } else {
+                log.info("заявки одобряются");
+                if (participantLimit > confirmedRequests) {
+                    if (request.getStatus() != RequestStatus.PENDING) {
+                        throw new ConflictException("Заявка не в состоянии ожидания", "");
+                    }
+
+                    request.setStatus(requestStatus);
+                    confirmedRequests++;
+                    updatedRequests.add(request);
+
+                } else {
+                    if (request.getStatus() != RequestStatus.PENDING) {
+                        throw new ConflictException("Заявка не в состоянии ожидания", "");
+                    }
+
+                    request.setStatus(requestStatus);
+                    noUpdateRequests.add(request);
+                }
+            }
         }
 
         requestRepository.saveAll(updatedRequests);
         requestRepository.saveAll(noUpdateRequests);
-        event.setConfirmedRequests(event.getConfirmedRequests() + updatedRequests.size());
+        event.setConfirmedRequests(confirmedRequests);
         eventRepository.save(event);
 
-        return buildUpdateResult(updatedRequests, noUpdateRequests);
+        return EventRequestStatusUpdateResult.builder()
+                .confirmedRequests(!updatedRequests.isEmpty()
+                        ? RequestMapper.mapToParticipationRequestDtoList(updatedRequests)
+                        : List.of())
+                .rejectedRequests(!noUpdateRequests.isEmpty()
+                        ? RequestMapper.mapToParticipationRequestDtoList(noUpdateRequests)
+                        : List.of())
+                .build();
     }
 
     @Override
@@ -291,8 +330,9 @@ public class EventServiceImpl implements EventService {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        statsClient.saveHit(thisService, request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
         Map<Integer, Long> viewsMpa = getViews(events);
+
+        statsClient.saveHit(thisService, request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
 
         List<EventShortDto> eventShortDto = events.stream()
                 .map(eventStream -> EventMapper.mapToEventShortDto(eventStream, viewsMpa))
@@ -323,8 +363,9 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Событие не опубликованно", "");
         }
 
-        statsClient.saveHit(thisService, request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
         Map<Integer, Long> viewsMpa = getViews(List.of(event));
+
+        statsClient.saveHit(thisService, request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
 
         return EventMapper.toEventFullDto(event, viewsMpa);
     }
@@ -332,8 +373,6 @@ public class EventServiceImpl implements EventService {
     private void validateParticipantLimit(Event event) {
         int participantLimit = event.getParticipantLimit();
         int confirmedRequests = event.getConfirmedRequests();
-        log.info("participantLimit: {}", participantLimit);
-        log.info("confirmedRequests: {}", confirmedRequests);
 
         if (participantLimit > 0 && participantLimit <= confirmedRequests) {
             throw new ConflictException("Больше создать заявок нельзя", "");
@@ -496,7 +535,7 @@ public class EventServiceImpl implements EventService {
                 .min(LocalDateTime::compareTo)
                 .orElse(null);
 
-        List<ElementStatsResponseDto> stats = statsClient.getStats(start, LocalDateTime.now(), eventId, true);
+        List<ElementStatsResponseDto> stats = statsClient.getStats(start, LocalDateTime.now().plusHours(1), eventId, true);
 
         log.info("Stats: {}", stats.toString());
         return stats.stream()
