@@ -15,7 +15,6 @@ import ru.practicum.request.model.RequestStatus;
 import ru.practicum.user.UserRepository;
 import ru.practicum.user.model.User;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -66,22 +65,16 @@ public class RequestServiceImpl implements RequestService {
         User requester = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException("Пользователя нет", ""));
 
-        Request newRequest = Request.builder()
-                .createdTime(LocalDateTime.now())
-                .event(event)
-                .requester(requester)
-                .status(RequestStatus.PENDING)
-                .build();
+        Request newRequest = RequestMapper.createRequest(requester, event);
 
         log.info(event.getRequestModeration().toString());
         if (participantLimit == 0 || !event.getRequestModeration()) {
-                newRequest.setStatus(RequestStatus.CONFIRMED);
-                int confirmedRequestsEvent = event.getConfirmedRequests() + 1;
-                event.setConfirmedRequests(confirmedRequestsEvent);
-                eventRepository.save(event);
+            newRequest.setStatus(RequestStatus.CONFIRMED);
+            int confirmedRequestsEvent = event.getConfirmedRequests() + 1;
+            event.setConfirmedRequests(confirmedRequestsEvent);
+            eventRepository.save(event);
         }
 
-        log.info("ДАННЫЕ USERID:{}, EVENTID:{}", userId, eventId);
         Request saveRequest = requestRepository.save(newRequest);
         log.info("Сохранненный request userId:{}, eventId:{}",
                 saveRequest.getRequester().getId(), saveRequest.getEvent().getId());

@@ -5,7 +5,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -68,10 +67,10 @@ public class EventServiceImpl implements EventService {
         Pageable pageable = PageRequest.of(from > 0 ? from / size : 0, size);
 
         log.info("Получение страницы ивентов");
-        Page<Event> categoryPage = eventRepository.findByInitiatorId(userId, pageable);
-        Map<Integer, Long> viewsMap = getViews(categoryPage.getContent());
+        List<Event> categoryPage = eventRepository.findByInitiatorId(userId, pageable);
+        Map<Integer, Long> viewsMap = getViews(categoryPage);
 
-        return categoryPage.getContent().stream()
+        return categoryPage.stream()
                 .map(event -> EventMapper.mapToEventShortDto(event, viewsMap))
                 .toList();
     }
@@ -91,7 +90,7 @@ public class EventServiceImpl implements EventService {
 
         locationRepository.save(LocationMapper.mapLocation(newEventDto.getLocation()));
 
-        Event newEvent = createToEvent(newEventDto, category, initiator);
+        Event newEvent = EventMapper.createToEvent(newEventDto, category, initiator);
         Event createEvent = eventRepository.save(newEvent);
 
         Map<Integer, Long> viewsMap = getViews(List.of(createEvent));
@@ -135,7 +134,7 @@ public class EventServiceImpl implements EventService {
             state = updateEventRequest.getStateAction().equalsIgnoreCase("CANCEL_REVIEW") ? State.CANCELED : State.PENDING;
         }
 
-        Event updatedEvent = privateUpdateEvent(event, updateEventRequest, category, state);
+        Event updatedEvent = EventMapper.privateUpdateEvent(event, updateEventRequest, category, state);
         Event savedEvent = eventRepository.save(updatedEvent);
 
         Map<Integer, Long> viewsMap = getViews(List.of(savedEvent));
@@ -278,7 +277,7 @@ public class EventServiceImpl implements EventService {
                 ? locationRepository.save(LocationMapper.mapLocation(updateEvent.getLocation()))
                 : null;
 
-        Event updatedEvent = adminUpdateEvent(event, updateEvent, category, state, location);
+        Event updatedEvent = EventMapper.adminUpdateEvent(event, updateEvent, category, state, location);
         Event newEvent = eventRepository.save(updatedEvent);
         Map<Integer, Long> viewsMap = getViews(List.of(newEvent));
 
@@ -415,55 +414,10 @@ public class EventServiceImpl implements EventService {
         return predicate;
     }
 
-    private Event adminUpdateEvent(Event event, UpdateEventRequest updateEvent, Category category,
-                                   State state, Location location) {
-        return updateEvent(event, updateEvent, category, state, location);
-    }
-
-    private Event privateUpdateEvent(Event event, UpdateEventRequest updateEvent, Category category, State state) {
-        return updateEvent(event, updateEvent, category, state, null);
-    }
-
-    private Event updateEvent(Event event, UpdateEventRequest updateEvent, Category category, State state, Location location) {
-        return event.toBuilder()
-                .annotation(updateEvent.getAnnotation() != null ? updateEvent.getAnnotation() : event.getAnnotation())
-                .category(updateEvent.getCategory() != null ? category : event.getCategory())
-                .description(updateEvent.getDescription() != null ? updateEvent.getDescription() : event.getDescription())
-                .eventDate(updateEvent.getEventDate() != null ? DateTimeAdapter.stringToLocalDateTime(updateEvent.getEventDate()) : event.getEventDate())
-                .location(location != null ? location : event.getLocation())
-                .paid(updateEvent.getPaid() != null ? updateEvent.getPaid() : event.getPaid())
-                .participantLimit(updateEvent.getParticipantLimit() != null ? updateEvent.getParticipantLimit() : event.getParticipantLimit())
-                .requestModeration(updateEvent.getRequestModeration() != null ? updateEvent.getRequestModeration() : event.getRequestModeration())
-                .title(updateEvent.getTitle() != null ? updateEvent.getTitle() : event.getTitle())
-                .state(state != null ? state : event.getState())
-                .publishedOn(event.getPublishedOn())
-                .build();
-    }
-
     private boolean isCheckinEventTime(String date) {
         LocalDateTime currentTime = LocalDateTime.now().plusHours(2);
         LocalDateTime eventDate = DateTimeAdapter.stringToLocalDateTime(date);
         return eventDate.isBefore(currentTime);
-    }
-
-    private Event createToEvent(NewEventDto newEventDto, Category category, User initiator) {
-        return Event.builder()
-                .title(newEventDto.getTitle())
-                .annotation(newEventDto.getAnnotation())
-                .category(category)
-                .confirmedRequests(0)
-                .description(newEventDto.getDescription())
-                .eventDate(DateTimeAdapter.stringToLocalDateTime(newEventDto.getEventDate()))
-                .initiator(initiator)
-                .location(LocationMapper.mapLocation(newEventDto.getLocation()))
-                .paid(newEventDto.getPaid() != null ? newEventDto.getPaid() : false)
-                .participantLimit(newEventDto.getParticipantLimit() != null
-                        ? newEventDto.getParticipantLimit() : 0)
-                .createdOn(LocalDateTime.now())
-                .requestModeration(newEventDto.getRequestModeration() != null
-                        ? newEventDto.getRequestModeration() : true)
-                .state(State.PENDING)
-                .build();
     }
 
     private Map<Integer, Long> getViews(List<Event> events) {

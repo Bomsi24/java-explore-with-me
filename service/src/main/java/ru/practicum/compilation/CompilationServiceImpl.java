@@ -2,7 +2,6 @@ package ru.practicum.compilation;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,11 +33,7 @@ public class CompilationServiceImpl implements CompilationService {
             events = eventRepository.findByIdIn(newCompilation.getEvents());
         }
 
-        Compilation compilationBuilder = Compilation.builder()
-                .events(events)
-                .pinned(newCompilation.getPinned() != null ? newCompilation.getPinned() : false)
-                .title(newCompilation.getTitle())
-                .build();
+        Compilation compilationBuilder = CompilationMapper.newCompilation(newCompilation, events);
 
         Compilation compilation = compilationRepository.save(compilationBuilder);
 
@@ -51,19 +46,13 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation oldCompilation = compilationRepository.findById(compId).orElseThrow(() ->
                 new NotFoundException("Подборка не найдена", ""));
 
-        if (updateCompilation.getEvents() != null && !updateCompilation.getEvents().isEmpty()) {
-            Set<Event> events = eventRepository.findByIdIn(updateCompilation.getEvents());
-            oldCompilation.setEvents(new HashSet<>(events));
-        }
+        Set<Event> events = (updateCompilation.getEvents() != null && !updateCompilation.getEvents().isEmpty())
+                ? eventRepository.findByIdIn(updateCompilation.getEvents())
+                : null;
 
-        if (updateCompilation.getPinned() != null) {
-            oldCompilation.setPinned(updateCompilation.getPinned());
-        }
-        if (updateCompilation.getTitle() != null) {
-            oldCompilation.setTitle(updateCompilation.getTitle());
-        }
+        Compilation compilation = CompilationMapper.updateCompilation(updateCompilation, oldCompilation, events);
 
-        Compilation newCompilation = compilationRepository.save(oldCompilation);
+        Compilation newCompilation = compilationRepository.save(compilation);
 
         return CompilationMapper.toDto(newCompilation);
     }
@@ -81,7 +70,7 @@ public class CompilationServiceImpl implements CompilationService {
     public List<CompilationDto> getCompilations(Boolean pinned, int from, int size) {
         log.info("Начало работы метода getCompilations");
         Pageable pageable = PageRequest.of(from > 0 ? from / size : 0, size);
-        Page<Compilation> page = compilationRepository.findByPinned(pinned, pageable);
+        List<Compilation> page = compilationRepository.findByPinned(pinned, pageable);
 
         return page.stream()
                 .map(CompilationMapper::toDto)

@@ -45,14 +45,9 @@ public class StatsServiceImpl implements StatsService {
                                                      List<String> uris, boolean unique) {
         boolean hasUris = (uris != null && !uris.isEmpty());
 
-        for (Stats stats : statsRepository.findAll()) {
-            log.info(stats.toString());
-        }
-
         if (unique) {
             if (hasUris) {
                 return statsRepository.getStatsOriginalIp(startTime, endTime, uris);
-
             } else {
                 return statsRepository.getStatsOriginalIp(startTime, endTime);
             }
