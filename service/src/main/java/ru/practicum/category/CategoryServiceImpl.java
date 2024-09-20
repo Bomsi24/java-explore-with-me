@@ -2,8 +2,6 @@ package ru.practicum.category;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -58,7 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(catId).orElseThrow(() ->
                 new NotFoundException("Такой категории нет", ""));
 
-        if(categoryRepository.existsByName(categoryDto.getName())
+        if (categoryRepository.existsByName(categoryDto.getName())
                 && !categoryDto.getName().equals(category.getName())) {
             throw new ConflictException("Имя должно быть уникальным", "");
         }

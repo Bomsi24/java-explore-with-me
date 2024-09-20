@@ -53,7 +53,7 @@ import static ru.practicum.event.model.QEvent.event;
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
-    private final static String thisService = "ewm-main-service";
+    private final String thisService = "ewm-main-service";
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
@@ -343,7 +343,7 @@ public class EventServiceImpl implements EventService {
     private void processRequest(Request request, RequestStatus requestStatus, Event event,
                                 List<Request> updatedRequests, List<Request> noUpdateRequests) {
 
-        if (requestStatus != RequestStatus.CONFIRMED) {//заявка не на одобрение
+        if (requestStatus != RequestStatus.CONFIRMED) {
             handleCancellation(request, noUpdateRequests);
         } else {
             handleConfirmation(request, event, updatedRequests, noUpdateRequests);
