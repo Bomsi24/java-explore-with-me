@@ -12,20 +12,22 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@Builder
 @Entity
 @Table(name = "stats")
 public class Stats {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     @Column(nullable = false)
     private String app;
