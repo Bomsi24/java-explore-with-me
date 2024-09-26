@@ -8,7 +8,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.category.dto.CategoryDto;
+import ru.practicum.comment.dto.CommentDto;
 import ru.practicum.user.dto.UserShortDto;
+
+import java.util.List;
 
 
 @Data
@@ -42,14 +45,15 @@ public class EventFullDto {
     @NotEmpty
     private String title;
 
+    @Min(value = 0)
+    private Integer participantLimit;
+
+    private List<CommentDto> comments;
     private String createdOn;
     private Integer id;
     private Integer confirmedRequests;
     private String description;
-
-    @Min(value = 0)
-    private Integer participantLimit;
-    private String publishedOn; //Дата и время публикации события (в формате "yyyy-MM-dd HH:mm:ss")
+    private String publishedOn;
     private Boolean requestModeration;
     private String state;
     private Long views;

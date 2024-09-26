@@ -18,25 +18,25 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/users/{userId}")
+@RequestMapping("/users/{userId}/requests")
 @RequiredArgsConstructor
 public class PrivateRequestController {
     private final RequestService requestService;
 
-    @GetMapping("/requests")
+    @GetMapping
     public List<ParticipationRequestDto> getRequestForUser(@PathVariable int userId) {
         log.info("Начало работы метода @GetMapping getRequestForUser");
         return requestService.getRequest(userId);
     }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/requests")
+    @PostMapping
     public ParticipationRequestDto createRequest(@PathVariable int userId, @RequestParam int eventId) {
         log.info("Начало работы метода @PostMapping createRequest");
         return requestService.createRequest(userId, eventId);
     }
 
-    @PatchMapping("/requests/{requestId}/cancel")
+    @PatchMapping("/{requestId}/cancel")
     public ParticipationRequestDto cancelRequest(@PathVariable int userId, @PathVariable int requestId) {
         log.info("Начало работы метода @PatchMapping cancelRequest");
         return requestService.cancelRequest(userId, requestId);

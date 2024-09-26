@@ -21,7 +21,6 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
-
     @Override
     public List<UserDto> getUsers(List<Integer> ids, int from, int size) {
         log.info("Начало работы метода getUsers");
